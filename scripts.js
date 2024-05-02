@@ -75,20 +75,18 @@ function checkRows() {
         rows[tile.row].push(tile);
     });
 
-    Object.entries(rows).forEach(([rowName, rowTiles]) => {
+    let result = Object.entries(rows).find(([rowName, rowTiles]) => {
         let firstTileOccup = rowTiles[0].occup;
 
         let allSame = rowTiles.every(tile => tile.occup === firstTileOccup);
 
-        if (allSame && firstTileOccup !== "empty") {
-            return firstTileOccup; // changed this to pass winner
-        } else {
-            return false
-        }
+        return allSame && firstTileOccup !== "empty";
     });
+
+    return result ? result[1][0].occup : null;
 };
 
-function checkCol() {
+function checkCols() {
     let tiles = Object.values(board);
     let cols = {
         "1": [],
@@ -100,17 +98,15 @@ function checkCol() {
         cols[tile.col].push(tile);
     });
 
-    Object.entries(cols).forEach(([colName, colTiles]) => {
+    let result = Object.entries(cols).find(([colName, colTiles]) => {
         let firstTileOccup = colTiles[0].occup;
 
         let allSame = colTiles.every(tile => tile.occup === firstTileOccup);
 
-        if (allSame && firstTileOccup !== "empty") {
-            return firstTileOccup; // changed this to pass winner
-        } else {
-            return false
-        }
+        return allSame && firstTileOccup !== "empty";
     });
+
+    return result ? result[1][0].occup : null;
 };
 
 function checkDiag() {
@@ -118,16 +114,40 @@ function checkDiag() {
         (board.c1.occup === board.b2.occup && board.c1.occup === board.a3.occup)) &&
         board.b2.occup !== "empty"){
             return board.b2.occup;  // changed this to pass winner
-        } else {
-            return false;
-        };
+        }
 }
 
-function checkWin(){
-    checkRows();
-    checkCol();
-    checkDiag();
+function checkWin() {
+    let result = checkRows();
+    if (result) {
+        return result;
+    }
+
+    result = checkCols();
+    if (result) {
+        return result;
+    }
+
+    result = checkDiag();
+    if (result) {
+        return result;
+    }
+
+    return result;
 };
+
+function checkDraw(){    
+    let draw = true;
+    
+    for (const tile in board){
+        if (board[tile].occup === "empty"){
+            draw = false;
+            break;
+        }
+    }
+
+    return draw;
+}
 
 
 
@@ -163,35 +183,59 @@ function playerToggle(player){
 }
 
 function round(player){
-    let tile = prompt("Pick an empty tile (a1 to c3)");
+    let tile = prompt(`${player} plays next`);
 
     if (Object.keys(board).includes(tile)){
         if (board[tile].isEmpty()) {
             board[tile].setOccup(player);
         } else {
             alert("Pick an empty tile");
-            round();
+            round(player);
         };
     } else {
         alert("pick a valid value")
-        round();
+        round(player);
     }
 }
 
 function roundLoop(){
     let player = "X"
 
-    if (!checkWin()) {
+    do {
         round(player);
-        playerToggle(player);
-        roundLoop();
-    } else {
-        return checkWin()
-    }
+        player = playerToggle(player);
+    } while (!checkWin())
+
+    if (checkWin()){
+        console.log(`${checkWin()} is the winner!`)
+    } 
 }
+    // else if (checkDraw()) {
+    //     console.log(`It's a draw!`)
+    // }
+
 
 function run() {
     start();
 
-    
+    roundLoop();
+}
+
+
+
+
+
+
+// Tests
+
+function testRow(){
+    board.a1.setOccup("X");
+    board.a2.setOccup("X");
+    board.a3.setOccup("X");
+};
+
+function testDraw(){
+    for (const tile in board){
+        board[tile].setOccup("X");
+    }
 }
