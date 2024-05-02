@@ -204,38 +204,20 @@ function roundLoop(){
     do {
         round(player);
         player = playerToggle(player);
-    } while (!checkWin())
+    } while (!checkWin() && !checkDraw())
 
     if (checkWin()){
         console.log(`${checkWin()} is the winner!`)
     } 
+
+    if (checkDraw()) {
+        console.log(`It's a draw!`)
+    }
 }
-    // else if (checkDraw()) {
-    //     console.log(`It's a draw!`)
-    // }
 
 
 function run() {
     start();
 
     roundLoop();
-}
-
-
-
-
-
-
-// Tests
-
-function testRow(){
-    board.a1.setOccup("X");
-    board.a2.setOccup("X");
-    board.a3.setOccup("X");
-};
-
-function testDraw(){
-    for (const tile in board){
-        board[tile].setOccup("X");
-    }
 }
