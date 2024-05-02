@@ -68,6 +68,8 @@ const gameEngine = (function(){
 
     // Check winning conditions
 
+    // Checks if rows have matching inputs
+
     function checkRows() {
         let tiles = Object.values(board);
         let rows = {
@@ -90,6 +92,8 @@ const gameEngine = (function(){
 
         return result ? result[1][0].occup : null;
     };
+
+    // Checks if columns have matching inputs
 
     function checkCols() {
         let tiles = Object.values(board);
@@ -114,6 +118,8 @@ const gameEngine = (function(){
         return result ? result[1][0].occup : null;
     };
 
+    // Checks the two diags.
+
     function checkDiag() {
         if (((board.a1.occup === board.b2.occup && board.a1.occup === board.c3.occup) ||
             (board.c1.occup === board.b2.occup && board.c1.occup === board.a3.occup)) &&
@@ -122,24 +128,14 @@ const gameEngine = (function(){
             }
     }
 
+    // Runs all checks to see if win condition is met
+
     function checkWin() {
-        let result = checkRows();
-        if (result) {
-            return result;
-        }
-
-        result = checkCols();
-        if (result) {
-            return result;
-        }
-
-        result = checkDiag();
-        if (result) {
-            return result;
-        }
-
-        return result;
+        let winningPlayer = checkRows() || checkCols() || checkDiag();
+        return winningPlayer ? winningPlayer : null;
     };
+
+    // Checks if the board is full to declare a draw.
 
     function checkDraw(){    
         let draw = true;
@@ -156,8 +152,7 @@ const gameEngine = (function(){
 
 
 
-
-    // Game run in console
+    // Run game. The game can run in the console
 
     function printBoard() {
         let boardString = '';
@@ -176,6 +171,8 @@ const gameEngine = (function(){
         console.log(boardString);
     }
 
+    // Reset the gameEngine game to start conditions.
+
     function restart(){
         for (const tile in board) {
             board[tile].reset();
@@ -183,10 +180,13 @@ const gameEngine = (function(){
         printBoard();
     };
 
+    // xxThis is only useful for the console game
     function playerToggle(player){
         return player === "X" ? "O" : "X";
     }
 
+    // xxThis is only useful for the console game
+    // Asks the player for an input, and checks if the input is both valid and empty.
     function round(player){
         let tile = prompt(`${player} plays next`);
 
@@ -203,6 +203,8 @@ const gameEngine = (function(){
         }
     }
 
+    // xxThis is only useful for the console game
+    // The console game
     function roundLoop(){
         let player = "X"
 
@@ -220,7 +222,8 @@ const gameEngine = (function(){
         }
     }
 
-
+    // xxThis is only useful for the console game
+    // Sets the game in motion by restarting the game
     function run() {
         restart();
 
@@ -232,7 +235,7 @@ const gameEngine = (function(){
         checkWin,
         checkDraw,
         restart,
-        // run, //remove the comment to allow play in console.
+        // run, //remove the comment to allow play in console. Involves prompts.
     }
 })();
 
@@ -243,203 +246,232 @@ const gameEngine = (function(){
 
 // DOM interactions with game engine
 
-// Selector for everything in the DOM as well hidden values
+const gameUI = (function(){
 
-const selector = (function(){
-    const buttons = document.querySelectorAll("#gameContainer > .tile > input");
-    const gameBoard = document.querySelector("#gameContainer");
-    const resetBtn = document.querySelector("#resetBtn");
-    const resetSco = document.querySelector("#resetSco");
+    // Selector for everything in the DOM as well hidden values
 
-    const playerX = "./images/X.svg";
-    const playerO = "./images/O.svg";
-    const currentPlayer = document.querySelector("#playerIcon");
-    let _player = "X";
+    const selector = (function(){
 
-    const togglePlayer = function () {
-        _player = _player === "X" ? "O" : "X";
-    };
+        // Select all buttons, including grid (invisible) buttons
 
-    const showHidden = function () {
-        return _player;
-    };
+        const buttons = document.querySelectorAll("#gameContainer > .tile > input");
+        const gameBoard = document.querySelector("#gameContainer");
+        const resetBtn = document.querySelector("#resetBtn");
+        const resetSco = document.querySelector("#resetSco");
 
-    const result = document.querySelector("#turnIndicator > p");
+        // Select everything indicating player, in UI and in the background (hidden)
 
-    const scoreX = document.querySelector("#scoreX");
-    const scoreO = document.querySelector("#scoreO");
-    let _scores = [0, 0];
+        const playerX = "./images/X.svg";
+        const playerO = "./images/O.svg";
+        const currentPlayer = document.querySelector("#playerIcon");
+        let _player = "X";
 
-    const incrementScores = function(player){
-        switch (player){
-            case "X":
-                _scores[0]++;
-                scoreX.textContent = _scores[0];
-                break;
-            case "O":
-                _scores[1]++;
-                scoreO.textContent = _scores[1];
-                break;
-        }
-    }
+        const togglePlayer = function () {
+            _player = _player === "X" ? "O" : "X";
+        };
 
-    const resetScores = function(){
-        _scores = [0, 0];
-        scoreX.textContent = _scores[0];
-        scoreO.textContent = _scores[1];
-    }
-    
-    const boardKeys = Object.keys(gameEngine.board);
-    const boardTiles = gameEngine.board;
+        const showHidden = function () {
+            return _player;
+        };
 
-    return {
-        buttons,
-        gameBoard,    
-        resetBtn,
-        resetSco,
+        // Select everything indicating score, in UI and in the background (hidden)
 
-        playerX,
-        playerO,
-        currentPlayer,
-        togglePlayer,
-        showHidden,
+        const result = document.querySelector("#turnIndicator > p");
 
-        result,
-        scoreX,
-        scoreO,
-        incrementScores,
-        resetScores,
+        const scoreX = document.querySelector("#scoreX");
+        const scoreO = document.querySelector("#scoreO");
+        let _scores = [0, 0];
 
-        boardKeys,
-        boardTiles,
-    }
-})();
-
-
-// Gives every button a unique ID matching the gameEngine game.
-
-(function assignButtonId(){
-    for (let i = 0; i < selector.boardKeys.length; i++){
-        selector.buttons[i].setAttribute("id", selector.boardKeys[i])
-    }
-})();
-
-// Matches the DOM interaction with the gameEngine
-
-function setChoice(tile, choice){
-    if (selector.boardTiles[tile].isEmpty()){
-        selector.boardTiles[tile].setOccup(choice);
-    } else {
-        console.log(`${tile} is not empty. Pick an empty tile!`)
-    }
-}
-
-// Shows choice on UI
-
-function showChoice(tile, player){
-    if (tile.getAttribute("class") === "") {
-        switch (player){
-            case "X":
-                tile.setAttribute("class", "playerX");
-                break;
-            case "O":
-                tile.setAttribute("class", "playerO");
-                break;
-    }}
-}
-
-// Once a player has played, next player goes.
-
-function rotatePlayer() {
-    selector.currentPlayer.setAttribute("src",
-        (selector.currentPlayer.getAttribute("src") === selector.playerX
-            ? selector.playerO
-            : selector.playerX));
-
-    selector.togglePlayer();
-}
-
-// Enables or disables actions on the grid, and sets functions to the right moment.
-
-const boardEnabling = (function(){
-    let boardEnable = true;
-
-    function boardEnabled(event) {
-        if (!boardEnable) {
-            return;
+        const incrementScores = function(player){
+            switch (player){
+                case "X":
+                    _scores[0]++;
+                    scoreX.textContent = _scores[0];
+                    break;
+                case "O":
+                    _scores[1]++;
+                    scoreO.textContent = _scores[1];
+                    break;
+            }
         }
 
-        const target = event.target;
+        const resetScores = function(){
+            _scores = [0, 0];
+            scoreX.textContent = _scores[0];
+            scoreO.textContent = _scores[1];
+        }
+        
+        // Select tiles via gameEngine
 
-        setChoice(target.id, selector.showHidden());
+        const boardKeys = Object.keys(gameEngine.board);
+        const boardTiles = gameEngine.board;
 
-        showChoice(target, selector.showHidden());
+        return {
+            buttons,
+            gameBoard,    
+            resetBtn,
+            resetSco,
 
-        if (gameEngine.checkWin()) {
-            selector.result.textContent = "is the winner!";
-            boardDisabled();
-            selector.incrementScores(selector.showHidden());
-        } else if (gameEngine.checkDraw()) {
-            console.log("it's a draw");
-            selector.currentPlayer.classList.add("hidden");
-            selector.result.textContent = "It's a draw";
-            boardDisabled();
+            playerX,
+            playerO,
+            currentPlayer,
+            togglePlayer,
+            showHidden,
+
+            result,
+            scoreX,
+            scoreO,
+            incrementScores,
+            resetScores,
+
+            boardKeys,
+            boardTiles,
+        }
+    })();
+
+
+    // Gives every button a unique ID matching the gameEngine game.
+
+    (function assignButtonId(){
+        for (let i = 0; i < selector.boardKeys.length; i++){
+            selector.buttons[i].setAttribute("id", selector.boardKeys[i])
+        }
+    })();
+
+    // Matches the DOM interaction with the gameEngine
+
+    function setChoice(tile, choice){
+        if (selector.boardTiles[tile].isEmpty()){
+            selector.boardTiles[tile].setOccup(choice);
         } else {
-            rotatePlayer();
+            console.log(`${tile} is not empty. Pick an empty tile!`)
         }
     }
 
-    function boardDisabled(){
-        boardEnable = !boardEnable;
+    // Shows choice on UI
+
+    function showChoice(tile, player){
+        if (tile.getAttribute("class") === "") {
+            switch (player){
+                case "X":
+                    tile.setAttribute("class", "playerX");
+                    break;
+                case "O":
+                    tile.setAttribute("class", "playerO");
+                    break;
+        }}
     }
 
-    function boardStatus(){
-        return boardEnable;
+    // Once a player has played, next player goes.
+
+    function rotatePlayer() {
+        selector.currentPlayer.setAttribute("src",
+            (selector.currentPlayer.getAttribute("src") === selector.playerX
+                ? selector.playerO
+                : selector.playerX));
+
+        selector.togglePlayer();
+    }
+
+    // Enables or disables actions on the grid, and sets functions to the right moment.
+
+    const boardEnabling = (function(){
+        let boardEnable = true;
+
+        // This is basically the game.
+
+        function boardEnabled(event) {
+            const target = event.target;
+
+            // If the board is not disabled, or if the tile is not already occupied.
+            // Allows the move the player made.
+
+            if (!boardEnable || target.classList.length !== 0) {
+                return;
+            }
+            
+            setChoice(target.id, selector.showHidden());
+
+            showChoice(target, selector.showHidden());
+
+
+            if (gameEngine.checkWin()) {
+                selector.result.textContent = "is the winner!";
+                boardDisabled();
+                selector.incrementScores(selector.showHidden());
+            } else if (gameEngine.checkDraw()) {
+                console.log("it's a draw");
+                selector.currentPlayer.classList.add("hidden");
+                selector.result.textContent = "It's a draw";
+                boardDisabled();
+            } else {
+                rotatePlayer();
+            }
+        }
+
+        function boardDisabled(){
+            boardEnable = !boardEnable;
+        }
+
+        function boardStatus(){
+            return boardEnable;
+        }
+
+        return {
+            boardEnabled,
+            boardDisabled,
+            boardStatus,
+        }
+    })();
+
+    // Reset function for the display of inputs
+
+    function resetBoard() {
+        for (let button of selector.buttons) {
+            button.setAttribute("class", "");
+        }
+
+        gameEngine.restart();
+
+        selector.currentPlayer.classList.remove("hidden");
+
+        selector.result.textContent = "goes next";
+
+        if (!boardEnabling.boardStatus()) {
+            boardEnabling.boardDisabled();
+        }
     }
 
     return {
-        boardEnabled,
-        boardDisabled,
-        boardStatus,
+        selector,
+        boardEnabling,
+        resetBoard,
     }
+
 })();
+
+
+
+
+
+// Event listeners
 
 // Event listener for boardEnabling logic
 
-selector.gameBoard.addEventListener("click", (event) => {
-    boardEnabling.boardEnabled(event)
+gameUI.selector.gameBoard.addEventListener("click", (event) => {
+    gameUI.boardEnabling.boardEnabled(event)
 });
-
-// Reset function for the display of inputs
-
-function resetBoard() {
-    for (let button of selector.buttons) {
-        button.setAttribute("class", "");
-    }
-
-    gameEngine.restart();
-
-    selector.currentPlayer.classList.remove("hidden");
-
-    selector.result.textContent = "goes next";
-
-    if (!boardEnabling.boardStatus()) {
-        boardEnabling.boardDisabled();
-    }
-}
-
-
 
 // Reset function on reset button press.
 
-selector.resetBtn.addEventListener("click", () => {
-    resetBoard();
+gameUI.selector.resetBtn.addEventListener("click", () => {
+    gameUI.resetBoard();
 })
 
 // Reset score on reset score press
 
-selector.resetSco.addEventListener("click", () => {
-    selector.resetScores();
+gameUI.selector.resetSco.addEventListener("click", () => {
+    gameUI.selector.resetScores();
 
-    resetBoard();
+    gameUI.resetBoard();
 })
