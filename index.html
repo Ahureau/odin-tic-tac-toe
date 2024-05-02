@@ -24,12 +24,28 @@
         </main>
         <aside>
             <div id="dataContainer">
+                <h1>Odin's Tic Tac Toe</h1>
                 <div id="turnIndicator">
-                    <img src="./images/X.svg" alt="X" id="playerIcon">
+                    <img src="./images/X.svg" alt="X" id="playerIcon" width="32px">
                     <p>goes next</p>
                 </div>
+                <div id="scoreBoard">
+                    <h2>Score</h2>
+                    <div>
+                        <div>
+                            <img src="./images/X.svg" alt="X" id="playerIcon" width="32px">
+                            <p id="scoreX">0</p>
+                        </div>
+                        <div id="scoreLine"></div>
+                        <div>
+                            <img src="./images/O.svg" alt="O" id="playerIcon" width="32px">
+                            <p id="scoreO">0</p>
+                        </div>
+                    </div>
+                </div>
                 <div id="controls">
-                    <input type="button" value="Reset" id="resetBtn">
+                    <input type="button" value="New game" id="resetBtn">
+                    <input type="button" value="Reset score" id="resetSco">
                 </div>
             </div>
         </aside>

@@ -1,4 +1,5 @@
-// This has all the functions to run the game
+// The gameEngine all the functions to run the game. Everything else is just UI related.
+// It can run without the UI by uncommenting the run function.
 
 const gameEngine = (function(){
     
@@ -156,7 +157,7 @@ const gameEngine = (function(){
 
 
 
-    // Game run
+    // Game run in console
 
     function printBoard() {
         let boardString = '';
@@ -228,13 +229,21 @@ const gameEngine = (function(){
 
     return {
         board,
+        checkWin,
+        checkDraw,
         restart,
+        // run, //remove the comment to allow play in console.
     }
 })();
 
 
 
+
+
+
 // DOM interactions with game engine
+
+// Selector for everything
 
 const selector = (function(){
     const buttons = document.querySelectorAll("#gameContainer > .tile > input");
@@ -243,7 +252,10 @@ const selector = (function(){
     const playerX = "./images/X.svg";
     const playerO = "./images/O.svg";
     const currentPlayer = document.querySelector("#playerIcon");
+    const result = document.querySelector("#turnIndicator > p");
     let hiddenPlayer = "X";
+    const scoreX = document.querySelector("#scoreX");
+    const scoreO = document.querySelector("#scoreO");
     const togglePlayer = function(){
         hiddenPlayer= hiddenPlayer === "X" ? "O" : "X";
     };
@@ -262,16 +274,24 @@ const selector = (function(){
         playerX,
         playerO,
         currentPlayer,
+        result,
+        scoreX,
+        scoreO,
         togglePlayer,
         showHidden,
     }
 })();
+
+
+// Gives every button a unique ID matching the gameEngine game.
 
 (function assignButtonId(){
     for (let i = 0; i < selector.boardKeys.length; i++){
         selector.buttons[i].setAttribute("id", selector.boardKeys[i])
     }
 })();
+
+// Matches the DOM interaction with the gameEngine
 
 function setChoice(tile, choice){
     if (selector.boardTiles[tile].isEmpty()){
@@ -281,19 +301,21 @@ function setChoice(tile, choice){
     }
 }
 
+// Shows choice on UI
+
 function showChoice(tile, player){
     if (tile.getAttribute("class") === "") {
         switch (player){
             case "X":
                 tile.setAttribute("class", "playerX");
-                rotatePlayer();
                 break;
             case "O":
                 tile.setAttribute("class", "playerO");
-                rotatePlayer();
                 break;
     }}
 }
+
+// Once a player has played, next player goes.
 
 function rotatePlayer() {
     selector.currentPlayer.setAttribute("src",
@@ -304,22 +326,77 @@ function rotatePlayer() {
     selector.togglePlayer();
 }
 
-function resetBoard(){
+// Enables or disables actions on the grid, and sets functions to the right moment.
+
+const boardEnabling = (function(){
+    let boardEnable = true;
+
+    function boardEnabled(event) {
+        if (!boardEnable) {
+            return;
+        }
+
+        const target = event.target;
+
+        setChoice(target.id, selector.showHidden());
+
+        showChoice(target, selector.showHidden());
+
+        if (gameEngine.checkWin()) {
+            selector.result.textContent = "is the winner!";
+            boardDisabled();
+        } else if (gameEngine.checkDraw()) {
+            console.log("it's a draw");
+            selector.currentPlayer.classList.add("hidden");
+            selector.result.textContent = "It's a draw";
+            boardDisabled();
+        } else {
+            rotatePlayer();
+        }
+    }
+
+    function boardDisabled(){
+        boardEnable = !boardEnable;
+    }
+
+    function boardStatus(){
+        return boardEnable;
+    }
+
+    return {
+        boardEnabled,
+        boardDisabled,
+        boardStatus,
+    }
+})();
+
+// Event listener for boardEnabling logic
+
+selector.gameBoard.addEventListener("click", (event) => {
+    boardEnabling.boardEnabled(event)
+});
+
+// Reset function for the display of inputs
+
+function resetBoard() {
     for (let button of selector.buttons) {
         button.setAttribute("class", "");
     }
 }
 
-selector.gameBoard.addEventListener("click", (event) => {
-    const target = event.target;
-    
-    setChoice(target.id, selector.showHidden());
-
-    showChoice(target, selector.showHidden());
-})
+// Reset function on reset button press. Still need to remove most of the 
+// functions from it.
 
 selector.resetBtn.addEventListener("click", () => {
     gameEngine.restart();
 
     resetBoard();
+
+    selector.currentPlayer.classList.remove("hidden");
+
+    selector.result.textContent = "goes next";
+
+    if (!boardEnabling.boardStatus()) {
+        boardEnabling.boardDisabled();
+    }
 })
