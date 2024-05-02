@@ -243,42 +243,75 @@ const gameEngine = (function(){
 
 // DOM interactions with game engine
 
-// Selector for everything
+// Selector for everything in the DOM as well hidden values
 
 const selector = (function(){
     const buttons = document.querySelectorAll("#gameContainer > .tile > input");
     const gameBoard = document.querySelector("#gameContainer");
     const resetBtn = document.querySelector("#resetBtn");
+    const resetSco = document.querySelector("#resetSco");
+
     const playerX = "./images/X.svg";
     const playerO = "./images/O.svg";
     const currentPlayer = document.querySelector("#playerIcon");
+    let _player = "X";
+
+    const togglePlayer = function () {
+        _player = _player === "X" ? "O" : "X";
+    };
+
+    const showHidden = function () {
+        return _player;
+    };
+
     const result = document.querySelector("#turnIndicator > p");
-    let hiddenPlayer = "X";
+
     const scoreX = document.querySelector("#scoreX");
     const scoreO = document.querySelector("#scoreO");
-    const togglePlayer = function(){
-        hiddenPlayer= hiddenPlayer === "X" ? "O" : "X";
-    };
-    const showHidden = function(){
-        return hiddenPlayer;
-    };
+    let _scores = [0, 0];
+
+    const incrementScores = function(player){
+        switch (player){
+            case "X":
+                _scores[0]++;
+                scoreX.textContent = _scores[0];
+                break;
+            case "O":
+                _scores[1]++;
+                scoreO.textContent = _scores[1];
+                break;
+        }
+    }
+
+    const resetScores = function(){
+        _scores = [0, 0];
+        scoreX.textContent = _scores[0];
+        scoreO.textContent = _scores[1];
+    }
+    
     const boardKeys = Object.keys(gameEngine.board);
     const boardTiles = gameEngine.board;
 
     return {
         buttons,
-        gameBoard,
-        boardKeys,
-        boardTiles,
+        gameBoard,    
         resetBtn,
+        resetSco,
+
         playerX,
         playerO,
         currentPlayer,
+        togglePlayer,
+        showHidden,
+
         result,
         scoreX,
         scoreO,
-        togglePlayer,
-        showHidden,
+        incrementScores,
+        resetScores,
+
+        boardKeys,
+        boardTiles,
     }
 })();
 
@@ -345,6 +378,7 @@ const boardEnabling = (function(){
         if (gameEngine.checkWin()) {
             selector.result.textContent = "is the winner!";
             boardDisabled();
+            selector.incrementScores(selector.showHidden());
         } else if (gameEngine.checkDraw()) {
             console.log("it's a draw");
             selector.currentPlayer.classList.add("hidden");
@@ -382,15 +416,8 @@ function resetBoard() {
     for (let button of selector.buttons) {
         button.setAttribute("class", "");
     }
-}
 
-// Reset function on reset button press. Still need to remove most of the 
-// functions from it.
-
-selector.resetBtn.addEventListener("click", () => {
     gameEngine.restart();
-
-    resetBoard();
 
     selector.currentPlayer.classList.remove("hidden");
 
@@ -399,4 +426,20 @@ selector.resetBtn.addEventListener("click", () => {
     if (!boardEnabling.boardStatus()) {
         boardEnabling.boardDisabled();
     }
+}
+
+
+
+// Reset function on reset button press.
+
+selector.resetBtn.addEventListener("click", () => {
+    resetBoard();
+})
+
+// Reset score on reset score press
+
+selector.resetSco.addEventListener("click", () => {
+    selector.resetScores();
+
+    resetBoard();
 })
